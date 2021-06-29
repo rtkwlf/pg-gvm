@@ -1,0 +1,11 @@
+Source: pg-gvm
+Maintainer: arcticwolf
+Section: libs
+Priority: optional
+Standards-Version: 4.1.5
+Build-Depends: debhelper (>= 9)
+
+Package: pg-gvm
+Architecture: any
+Description: pg-gvm
+ This library contains functionality for ical object manipulation.
