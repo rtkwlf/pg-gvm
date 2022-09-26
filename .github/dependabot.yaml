@@ -1,0 +1,30 @@
+################
+# DO NOT EDIT! #
+################
+# This file is maintained by https://github.com/rtkwlf/devsecops-gh-automation
+# making any changes here will prompt a new PR to
+# be opened against your repository.
+# Please reach out to DevSecOps with questions, comments, or issues.
+# https://arcticwolf.atlassian.net/wiki/spaces/AWD/pages/2912944394/Engaging+the+DevSecOps+team
+version: 2
+# Define the registry for the rtkwlf-actions GitHub Org
+registries:
+  github-rtkwlf-actions:
+    type: git
+    url: https://github.com
+    username: rtkdependabot
+    password: ${{ secrets.RTKWLF_ACTIONS_PAT }}
+
+updates:
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    labels:
+      - dependencies
+      - github-actions
+      - patch release
+    registries:
+      - github-rtkwlf-actions

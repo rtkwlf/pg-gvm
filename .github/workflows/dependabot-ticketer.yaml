@@ -1,0 +1,87 @@
+################
+# DO NOT EDIT! #
+################
+# This file is maintained by DevSecOps automation,
+# making any changes here will prompt a new PR to
+# be opened against your repository.
+# Please reach out to DevSecOps if there are any questions, concerns, or to report any errors.
+# https://arcticwolf.atlassian.net/wiki/spaces/AWD/pages/2912944394/Engaging+the+DevSecOps+team
+name: dependabot workflow
+on:
+  pull_request:
+    types:
+      - opened
+
+permissions:
+  pull-requests: write
+  issues: write
+  repository-projects: write
+
+jobs:
+  dependabot-ticketer:
+    runs-on: ubuntu-20.04
+    if: github.actor == 'dependabot[bot]'
+    env:
+      JIRA_API_TOKEN: ${{ secrets.PAT_RTKWLF_DEVSECOPS_TICKETER }}
+      JIRA_BASE_URL: ${{ secrets.RTKWLF_JIRA_BASE_URL }}
+      JIRA_ISSUE_TYPE: R&D Security Finding
+      JIRA_PROJECT: AWN
+      JIRA_RND_TEAM: ''
+      JIRA_USER_EMAIL: ${{ secrets.RTKWLF_DEVSECOPS_TICKETER_EMAIL }}
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1.3.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Dependabots Original PR Title
+        id: dependabot-title
+        run: echo ::set-output name=DBOT_TITLE::"$(gh pr view --json title "$PR_URL" -q .title)"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: login to jira
+        uses: atlassian/gajira-login@v2.0.0
+        env:
+          JIRA_API_TOKEN: ${{ env.JIRA_API_TOKEN }}
+          JIRA_BASE_URL: ${{ env.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ env.JIRA_USER_EMAIL }}
+
+      - name: create jira issue
+        id: create
+        uses: atlassian/gajira-create@v2.0.1
+        with:
+          project: ${{ env.JIRA_PROJECT }}
+          issuetype: ${{ env.JIRA_ISSUE_TYPE }}
+          summary: |
+            [Dependabot] - ${{ github.event.repository.name }} - ${{ steps.dependabot-title.outputs.DBOT_TITLE }}
+          description: |
+            GitHub PR: ${{ github.event.repository.html_url }}/pull/${{ github.event.workflow_run.pull_requests[0].number }}
+            Package Type: ${{ steps.metadata.outputs.package-ecosystem }}
+          # The gajira-create module explicity uses json in the YAML configuration
+          fields: |
+            {
+                "customfield_10700": {
+                    "value": "${{ env.JIRA_RND_TEAM }}"
+                },
+                "customfield_12980": "Dependabot",
+                "labels": [
+                    "source:dbot_ticketer",
+                    "pkgman:${{ steps.metadata.outputs.package-ecosystem }}",
+                    "org:${{ github.repository_owner }}"
+                ]
+            }
+
+      - name: Add Jira ticket URL to PR
+        run: gh pr edit "$PR_URL" --title "${{ steps.create.outputs.issue }} - ${{ steps.dependabot-title.outputs.DBOT_TITLE }}"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add patch release label
+        run: gh pr edit "$PR_URL" --add-label "patch release"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

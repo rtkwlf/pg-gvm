@@ -1,0 +1,46 @@
+##########################################
+# DO NOT EDIT THE CODEQL INIT LANGUAGES! #
+##########################################
+# This file is maintained by https://github.com/rtkwlf/devsecops-gh-automation,
+# making any changes to the codeql init step will prompt a new PR to
+# be opened against your repository. Otherwise feel free to customize.
+# Please reach out to DevSecOps if there are any questions, concerns, or to report any errors.
+# https://arcticwolf.atlassian.net/wiki/spaces/AWD/pages/2912944394/Engaging+the+DevSecOps+team
+name: codeql-security-analysis
+on:
+  push:
+    branches:
+      - dev
+      - develop
+      - main
+      - master
+  pull_request:
+    branches:
+      - dev
+      - develop
+      - main
+      - master
+  schedule:
+    - cron: 0 0 * * *
+
+jobs:
+  codeql-security-analysis:
+    runs-on: ubuntu-20.04
+
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+
+      - name: initialize codeql
+        uses: github/codeql-action/init@v2
+        with:
+          languages: c
+          queries: security-extended
+
+      - name: perform codeql analysis
+        uses: github/codeql-action/analyze@v2

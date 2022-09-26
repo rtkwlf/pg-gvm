@@ -1,0 +1,17 @@
+name: check for ghas security alerts
+on:
+  schedule:
+    - cron: 0 0 * * *
+  workflow_dispatch:
+
+jobs:
+  scribe:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: ticket security alerts
+        uses: rtkwlf-actions/ghas-security-scribe@v1.0.1
+        with:
+          github_alert_token: ${{ secrets.ALERT_SCANNING_INSTALLATION_ACCESS_TOKEN }}
+          jira_api_token: ${{ secrets.PAT_RTKWLF_DEVSECOPS_TICKETER }}
+          jira_user: ${{ secrets.RTKWLF_DEVSECOPS_TICKETER_EMAIL }}
+          jira_rnd_team: None
